@@ -1,16 +1,20 @@
 import { useJsApiLoader } from "@react-google-maps/api";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import GeoFencing from "./components/GeoFencing";
 function App() {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: ["drawing"],
   });
+
+  const [paths, setPaths] = useState<number[][]>([]);
+
   return (
     <>
       <div>Google Maps Drawing</div>
-      <div style={{ height: "calc(100vh - 50px)", width: "100%" }}>
+      <div style={{ height: "calc(100vh - 250px)", width: "100%" }}>
         {isLoaded && (
           <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
             <Map
@@ -20,7 +24,12 @@ function App() {
               gestureHandling={"greedy"}
               disableDefaultUI={true}
             />
-            <MyComponent />
+            <MyComponent
+              setPaths={(paths) => {
+                setPaths(paths);
+              }}
+            />
+            <GeoFencing paths={paths} />
           </APIProvider>
         )}
       </div>
@@ -30,7 +39,7 @@ function App() {
 
 export default App;
 
-const MyComponent = () => {
+const MyComponent = ({ setPaths }: { setPaths: (paths: number[][]) => void }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -66,15 +75,15 @@ const MyComponent = () => {
     // @ts-ignore
     drawingManager.addListener("overlaycomplete", (e) => {
       if (e.type === google.maps.drawing.OverlayType.POLYGON) {
-        console.log(
-          e.overlay
-            .getPath()
-            .getArray()
-            // #NOTE : The types that are in this library are not accurate
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            .map((p) => [p.lat(), p.lng()])
-        );
+        const paths = e.overlay
+          .getPath()
+          .getArray()
+          // #NOTE : The types that are in this library are not accurate
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          .map((p) => [p.lat(), p.lng()]);
+        console.log("paths", paths);
+        setPaths(paths);
       }
     });
 
