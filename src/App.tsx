@@ -24,6 +24,7 @@ function App() {
               gestureHandling={"greedy"}
               disableDefaultUI={true}
             />
+            {paths.length > 0 ? <p>{JSON.stringify(paths, null, 4)}</p> : null}
             <MyComponent
               setPaths={(paths) => {
                 setPaths(paths);
